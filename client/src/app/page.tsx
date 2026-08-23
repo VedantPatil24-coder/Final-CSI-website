@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { FiArrowRight, FiGithub, FiLinkedin, FiCalendar, FiMapPin, FiCheck, FiCpu, FiUsers, FiZap, FiTarget, FiMail, FiInstagram } from 'react-icons/fi';
+import { FiArrowRight, FiGithub, FiLinkedin, FiCalendar, FiMapPin, FiCheck, FiCpu, FiUsers, FiZap, FiTarget, FiMail, FiInstagram, FiShare2 } from 'react-icons/fi';
 import Loader from '@/components/Loader';
 import NetworkGlobe from '@/components/NetworkGlobe';
 
@@ -181,17 +181,92 @@ const FALLBACK_TEAM: TeamMember[] = [
   }
 ];
 
+const CALENDAR_EVENTS = [
+  {
+    code: '00',
+    title: 'INAUGURATION',
+    time: 'TODAY',
+    description: 'Official establishment of the CSI PVG Student Chapter. Joining forces to transition traditional engineering into dynamic technology leadership.',
+    tags: []
+  },
+  {
+    code: '01',
+    title: 'SYNTAX SWEEP',
+    time: 'SEPTEMBER',
+    description: '250 lines of broken code. One ticking clock. Zero mercy. Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the sharpest debuggers walk away champions.',
+    tags: []
+  },
+  {
+    code: '02',
+    title: 'IDEATHON',
+    time: 'OCTOBER',
+    description: 'Brainstorm, design, and prototype solutions for real-world problems in an intense collaborative format.',
+    tags: ['Collaboration with ACES PVG']
+  },
+  {
+    code: '03',
+    title: 'FRONTEND DUPLICATION + CODE RECREATION',
+    time: 'NOVEMBER',
+    description: 'Showcase design accuracy and UI creation speed in a high-fidelity frontend cloning challenge.',
+    tags: []
+  },
+  {
+    code: '04',
+    title: 'TECH SESSION + CODE MODE',
+    time: 'JANUARY',
+    description: 'Expert-led technical seminars covering modern architectures followed by coding drills.',
+    tags: ['Online', 'Collaboration with ACES PVG']
+  },
+  {
+    code: '05',
+    title: 'DATA INTERRUPT',
+    time: 'FEBRUARY',
+    description: 'Harness algorithms, data analytics, and computational models to solve tricky quantitative puzzles.',
+    tags: []
+  },
+  {
+    code: '06',
+    title: 'HACKATHON',
+    time: 'MARCH/APRIL',
+    description: 'Our flagship hackathon where students build functional prototypes and compete before industry panels.',
+    tags: ['Collaboration with ACES PVG']
+  },
+  {
+    code: '??',
+    title: 'CURRENT HORIZON',
+    time: 'FURTHER DEPLOYMENTS UNCHARTED.',
+    description: 'Additional workshops, secret missions, guest lectures, and newer technical modules yet to be revealed.',
+    tags: []
+  }
+];
+
+const FALLBACK_NEWS: NewsItem[] = [
+  {
+    _id: 'news_001',
+    title: 'CSI Student Chapter Inauguration Ceremony',
+    content: 'We cordially invite you to the official Inauguration Ceremony of the Computer Society of India (CSI) Student Chapter at PVG\'s College of Engineering and Technology and G. K. Pate (Wani) Institute of Management, Pune. Join us on 24th August 2026 at 3:30 PM in the T&P Seminar Hall as we commence this technical journey.',
+    imageUrl: '/inauguration_poster.png',
+    createdAt: '2026-08-22T10:00:00.000Z'
+  }
+];
+
+const getImageUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  if (url.startsWith('/uploads')) return `${BACKEND_URL}${url}`;
+  return url;
+};
+
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
 
   // Dynamic state loaded from backend with robust local fallbacks
   const [team, setTeam] = useState<TeamMember[]>(FALLBACK_TEAM);
   const [events, setEvents] = useState<EventItem[]>([]);
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [news, setNews] = useState<NewsItem[]>(FALLBACK_NEWS);
   const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
-
-  // Registration feedback status map: { eventId: boolean }
   const [registeredEvents, setRegisteredEvents] = useState<{ [key: string]: boolean }>({});
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { scrollY } = useScroll();
   const yBgGrid = useTransform(scrollY, [0, 3000], [0, -400]);
@@ -228,7 +303,12 @@ export default function Home() {
         if (eventsRes.ok) setEvents(await eventsRes.json());
 
         const newsRes = await fetch(`${BACKEND_URL}/api/public/news`);
-        if (newsRes.ok) setNews(await newsRes.json());
+        if (newsRes.ok) {
+          const newsData = await newsRes.json();
+          if (Array.isArray(newsData) && newsData.length > 0) {
+            setNews(newsData);
+          }
+        }
 
         const testRes = await fetch(`${BACKEND_URL}/api/public/testimonials`);
         if (testRes.ok) setTestimonials(await testRes.json());
@@ -237,6 +317,14 @@ export default function Home() {
       }
     };
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedImage(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleRegisterEvent = async (eventId: string) => {
@@ -356,7 +444,7 @@ export default function Home() {
           <div className="glow-aura w-[600px] h-[600px] bg-purple-500/10 bottom-[20%] right-[-10%]" />
 
           {/* 1. HERO SECTION */}
-          <section className="relative min-h-screen flex flex-col items-center justify-center z-10 px-6 pt-24 pb-12 overflow-hidden bg-[#030303]">
+          <section className="relative min-h-screen flex flex-col items-center justify-center z-10 px-6 pt-32 sm:pt-36 md:pt-40 pb-12 overflow-hidden bg-[#030303]">
             <motion.div style={{ y: yGlobe }} className="absolute inset-0 z-0 pointer-events-none">
               <NetworkGlobe />
             </motion.div>
@@ -367,12 +455,12 @@ export default function Home() {
               className="flex justify-between items-center w-full max-w-5xl mb-8 relative z-20"
             >
               {/* PVG Badge */}
-              <div className="w-16 h-16 md:w-24 md:h-24 rounded-full overflow-hidden border border-white/20 flex items-center justify-center bg-white shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-24 md:h-24 rounded-full overflow-hidden border border-white/20 flex items-center justify-center bg-white shadow-[0_0_15px_rgba(255,255,255,0.15)] shrink-0">
                 <img src="/logo.png" alt="PVG Seal" className="w-[82%] h-[82%] object-contain rounded-full" />
               </div>
               {/* CSI Badge */}
-              <div className="w-16 h-16 md:w-24 md:h-24 rounded-full overflow-hidden border border-cyan-500/30 flex items-center justify-center bg-white shadow-[0_0_15px_rgba(0,240,255,0.25)]">
-                <img src="/csi_logo.png" alt="CSI Logo" className="w-[82%] h-[82%] object-contain rounded-full" />
+              <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-24 md:h-24 rounded-full overflow-hidden border border-cyan-500/30 flex items-center justify-center bg-white shadow-[0_0_15px_rgba(0,240,255,0.25)] shrink-0">
+                <img src="/csi_logo.jpg" alt="CSI Logo" className="w-full h-full object-cover rounded-full" />
               </div>
             </motion.div>
 
@@ -409,29 +497,18 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Tagline */}
-              <div className="flex gap-4 sm:gap-6 justify-center items-center font-mono font-black tracking-[0.3em] text-xs sm:text-sm md:text-base mt-6 mb-2">
-                <span className="text-purple-400 hover:text-purple-300 transition-colors">CODE.</span>
-                <span className="text-cyan-400 hover:text-cyan-300 transition-colors">CONNECT.</span>
-                <span className="text-blue-400 hover:text-blue-300 transition-colors">CREATE.</span>
-              </div>
-
               {/* Core Values Row */}
               <div className="flex flex-wrap justify-center items-center gap-y-3 gap-x-4 md:gap-x-8 mt-6 py-4 px-6 border-t border-b border-white/5 max-w-4xl w-full">
                 <div className="flex items-center gap-2 text-xs md:text-sm font-mono tracking-widest text-cyan-300 hover:text-cyan-200 transition-colors">
                   <FiCpu className="text-cyan-400 w-4 h-4 animate-pulse" /> INNOVATE
                 </div>
                 <div className="hidden sm:block w-[1px] h-4 bg-white/10" />
-                <div className="flex items-center gap-2 text-xs md:text-sm font-mono tracking-widest text-purple-300 hover:text-purple-200 transition-colors">
-                  <FiUsers className="text-purple-400 w-4 h-4" /> COLLABORATE
-                </div>
-                <div className="hidden sm:block w-[1px] h-4 bg-white/10" />
                 <div className="flex items-center gap-2 text-xs md:text-sm font-mono tracking-widest text-pink-300 hover:text-pink-200 transition-colors">
-                  <FiZap className="text-pink-400 w-4 h-4" /> INSPIRE
+                  <FiZap className="text-pink-400 w-4 h-4 animate-pulse" /> INSPIRE
                 </div>
                 <div className="hidden sm:block w-[1px] h-4 bg-white/10" />
-                <div className="flex items-center gap-2 text-xs md:text-sm font-mono tracking-widest text-yellow-400 hover:text-yellow-300 transition-colors">
-                  <FiTarget className="text-yellow-500 w-4 h-4" /> IMPACT
+                <div className="flex items-center gap-2 text-xs md:text-sm font-mono tracking-widest text-purple-300 hover:text-purple-200 transition-colors">
+                  <FiShare2 className="text-purple-400 w-4 h-4" /> INTEGRATE
                 </div>
               </div>
 
@@ -474,7 +551,6 @@ export default function Home() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <span className="text-cyan-400 font-mono text-sm uppercase tracking-widest block mb-2"></span>
                 <h2 className="cyber-font text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-wide mb-6">
                   ABOUT CSI & PVG's COET&M
                 </h2>
@@ -541,7 +617,6 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
             className="relative z-10 py-24 px-6 max-w-7xl mx-auto"
           >
             <div className="text-center mb-16">
-              <span className="text-cyan-400 font-mono text-sm uppercase tracking-widest block mb-2"></span>
               <h2 className="cyber-font text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-wide">
                 RECENT NEWS
               </h2>
@@ -561,13 +636,14 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
                 {news.map((item) => (
                   <div
                     key={item._id}
-                    className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col justify-between group hover:border-cyan-500/30 transition-all duration-300"
+                    onClick={() => item.imageUrl && setSelectedImage(getImageUrl(item.imageUrl))}
+                    className="glass-panel p-6 rounded-2xl border border-white/5 flex flex-col justify-between group hover:border-cyan-500/30 transition-all duration-300 cursor-zoom-in"
                   >
                     <div>
                       {item.imageUrl && (
                         <div className="w-full h-44 rounded-xl overflow-hidden mb-4">
                           <img
-                            src={`${BACKEND_URL}${item.imageUrl}`}
+                            src={getImageUrl(item.imageUrl)}
                             alt={item.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
@@ -593,23 +669,20 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
           <motion.section id="events" style={{ y: yEvents }} className="relative z-10 py-24 px-6 bg-black/40">
             <div className="max-w-7xl mx-auto">
               <div className="text-center mb-16">
-                <span className="text-purple-400 font-mono text-sm uppercase tracking-widest block mb-2"></span>
                 <h2 className="cyber-font text-4xl sm:text-6xl md:text-7xl font-black text-white tracking-wide">
                   UPCOMING EVENTS
                 </h2>
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <div className="h-[1px] w-6 bg-gradient-to-r from-transparent to-cyan-400/50" />
+                  <p className="text-[10px] sm:text-xs text-cyan-400 tracking-[0.4em] font-mono uppercase font-bold">
+                    Innovate • Inspire • Integrate
+                  </p>
+                  <div className="h-[1px] w-6 bg-gradient-to-l from-transparent to-cyan-400/50" />
+                </div>
               </div>
 
-              {events.length === 0 ? (
-                <div className="glass-panel p-12 rounded-2xl border border-white/5 text-center max-w-md mx-auto">
-                  <p className="text-gray-300 font-mono uppercase tracking-widest text-sm sm:text-base">
-                    Coming Soon • Registration Node Offline
-                  </p>
-                  <p className="text-sm text-gray-400 mt-2">
-                    Our technical symposium schedules are currently forming. Registration doors open shortly!
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {events.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-24">
                   {events.map((evt) => (
                     <div
                       key={evt._id}
@@ -619,11 +692,14 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
 
                       <div>
                         {evt.imageUrl && (
-                          <div className="w-full h-48 rounded-xl overflow-hidden mb-4">
+                          <div 
+                            onClick={() => setSelectedImage(getImageUrl(evt.imageUrl))}
+                            className="w-full h-48 rounded-xl overflow-hidden mb-4 cursor-zoom-in group/evtimg relative"
+                          >
                             <img
-                              src={`${BACKEND_URL}${evt.imageUrl}`}
+                              src={getImageUrl(evt.imageUrl)}
                               alt={evt.title}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover/evtimg:scale-105"
                             />
                           </div>
                         )}
@@ -668,6 +744,89 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
                   ))}
                 </div>
               )}
+
+              {/* Timeline Container */}
+              <div className="relative max-w-5xl mx-auto px-2 sm:px-6">
+                {/* Central Spine Line */}
+                <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-cyan-400 via-purple-500 to-cyan-500 transform md:-translate-x-1/2 opacity-20 shadow-[0_0_10px_rgba(0,240,255,0.3)]" />
+
+                <div className="space-y-12 md:space-y-16 relative">
+                  {CALENDAR_EVENTS.map((item, index) => {
+                    const isEven = index % 2 === 0;
+                    return (
+                      <div 
+                        key={item.code} 
+                        className={`relative flex flex-col md:flex-row ${isEven ? 'md:flex-row-reverse' : ''} items-start md:items-center`}
+                      >
+                        {/* Timeline Node */}
+                        <div className="absolute left-6 md:left-1/2 transform -translate-x-1/2 z-20 flex items-center justify-center">
+                          <motion.div
+                            initial={{ scale: 0.7, opacity: 0 }}
+                            whileInView={{ scale: 1, opacity: 1 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            className="w-8 h-8 rounded-full border-2 border-cyan-400 bg-[#020205] text-cyan-400 text-xs font-mono font-bold flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.5)] transition-all duration-300 hover:scale-110 hover:border-purple-400 hover:text-purple-400 hover:shadow-[0_0_15px_rgba(189,0,255,0.5)]"
+                          >
+                            {item.code}
+                          </motion.div>
+                        </div>
+
+                        {/* Timeline Card Container */}
+                        <div className={`w-full md:w-1/2 pl-12 md:pl-0 ${isEven ? 'md:pr-12' : 'md:pl-12'} relative`}>
+                          {/* Pointer Connector Line (Desktop Only) */}
+                          <div className={`hidden md:block absolute top-1/2 transform -translate-y-1/2 w-12 h-[1px] bg-gradient-to-r ${isEven ? 'right-0 from-transparent to-cyan-500/30' : 'left-0 from-cyan-500/30 to-transparent'}`} />
+
+                          <motion.div
+                            initial={{ x: isEven ? 40 : -40, opacity: 0 }}
+                            whileInView={{ x: 0, opacity: 1 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className={`glass-panel p-6 rounded-2xl border border-white/5 hover:border-cyan-500/30 transition-all duration-300 relative group overflow-visible shadow-[0_8px_32px_0_rgba(0,0,0,0.5)]
+                              after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:left-[-6px] 
+                              after:border-y-[6px] after:border-y-transparent after:border-r-[6px] after:border-r-[rgba(10,10,20,0.6)]
+                              ${isEven ? 'md:after:left-auto md:after:right-[-6px] md:after:border-r-transparent md:after:border-l-[6px] md:after:border-l-[rgba(10,10,20,0.6)]' : ''}
+                            `}
+                          >
+                            {/* Glow accent band inside the card */}
+                            <div className={`absolute top-0 bottom-0 w-1 bg-gradient-to-b from-cyan-400 to-purple-500 transform ${isEven ? 'right-0 md:left-0 md:right-auto' : 'left-0'} scale-y-0 group-hover:scale-y-100 transition-transform duration-300 rounded-full`} />
+
+                            {/* Time / Month Label */}
+                            <span className="text-[10px] sm:text-xs font-mono font-bold text-cyan-400 tracking-[0.2em] block mb-1.5 uppercase">
+                              {item.time}
+                            </span>
+
+                            {/* Event Title */}
+                            <h4 className="cyber-font text-white font-extrabold text-base sm:text-lg tracking-wide mb-2 uppercase group-hover:text-cyan-300 transition-colors">
+                              {item.title}
+                            </h4>
+
+                            {/* Event Description */}
+                            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-4">
+                              {item.description}
+                            </p>
+
+                            {/* Tags / Collaboration Badges */}
+                            {item.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {item.tags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="text-[9px] font-mono tracking-wider font-semibold border border-purple-500/30 bg-purple-500/10 text-purple-300 px-2 py-0.5 rounded-full"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        </div>
+
+                        {/* Spacer for Desktop */}
+                        <div className="hidden md:block w-1/2" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </motion.section>
 
@@ -859,7 +1018,7 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
                     </a>
                   </div>
 
-                  <div className="flex items-center gap-3 pt-2">
+                  <div className="flex flex-col items-start gap-3 pt-2">
                     <a
                       href="https://www.instagram.com/csi_pvg/"
                       target="_blank"
@@ -868,6 +1027,15 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
                     >
                       <FiInstagram className="w-5 h-5" />
                       <span>@csi_pvg</span>
+                    </a>
+                    <a
+                      href="https://www.linkedin.com/in/computer-society-of-india-pvg-student-chapter-90a67542b/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors font-mono text-sm"
+                    >
+                      <FiLinkedin className="w-5 h-5" />
+                      <span>CSI PVG Student Chapter</span>
                     </a>
                   </div>
                 </div>
@@ -886,6 +1054,39 @@ Hunt the bugs, patch the chaos, and ship it clean before time runs out. Only the
           </footer>
         </main>
       )}
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-4xl max-h-[90vh] w-full flex items-center justify-center p-2 rounded-2xl border border-white/10 bg-[#0a0a14]/90 shadow-[0_0_50px_rgba(0,0,0,0.8)]"
+            >
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 text-white hover:text-cyan-400 font-mono tracking-widest text-xs uppercase bg-white/5 border border-white/10 px-3 py-1.5 rounded-md hover:border-cyan-500/30 transition-all cursor-pointer"
+              >
+                Close [Esc]
+              </button>
+              <img
+                src={selectedImage}
+                alt="Enlarged view"
+                className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-[0_0_50px_rgba(0,240,255,0.2)]"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

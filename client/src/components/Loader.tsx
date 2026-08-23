@@ -8,20 +8,41 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
   const [logText, setLogText] = useState('INITIALIZING DIGITAL CORE...');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
   // Percentage counter logic
   useEffect(() => {
+    let alreadyShown = false;
+    try {
+      if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+        alreadyShown = !!sessionStorage.getItem('csi_intro_shown');
+      }
+    } catch (e) {
+      console.warn('Storage check failed, continuing normal load:', e);
+    }
+
+    // Skip loader immediately if it has already been shown in the current session
+    if (alreadyShown) {
+      onCompleteRef.current();
+      return;
+    }
+
     let currentProgress = 0;
     const interval = setInterval(() => {
-      // Vary the increment speed for faster loading
+      // Much faster increment values to speed up loading
       let increment = 1;
       if (currentProgress < 35) {
-        increment = Math.floor(Math.random() * 8) + 6;
+        increment = Math.floor(Math.random() * 15) + 12;
       } else if (currentProgress < 75) {
-        increment = Math.floor(Math.random() * 6) + 4;
+        increment = Math.floor(Math.random() * 10) + 8;
       } else if (currentProgress < 95) {
-        increment = Math.floor(Math.random() * 4) + 2;
+        increment = Math.floor(Math.random() * 6) + 4;
       } else {
-        increment = 2;
+        increment = 4;
       }
 
       currentProgress = Math.min(100, currentProgress + increment);
@@ -31,9 +52,14 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
       if (currentProgress === 100) {
         setLogText('SYSTEM ONLINE. ACCESS GRANTED.');
         clearInterval(interval);
+        try {
+          sessionStorage.setItem('csi_intro_shown', 'true');
+        } catch (e) {
+          console.error(e);
+        }
         setTimeout(() => {
-          onComplete();
-        }, 300); // Fast transition after reaching 100%
+          onCompleteRef.current();
+        }, 150); // Snappy transition after reaching 100%
       } else if (currentProgress > 90) {
         setLogText('PERFORMING FINAL KERNEL CHECKS...');
       } else if (currentProgress > 75) {
@@ -47,10 +73,24 @@ export default function Loader({ onComplete }: { onComplete: () => void }) {
       } else {
         setLogText('INITIALIZING DIGITAL CORE...');
       }
-    }, 16); // Fast interval for snappy response (approx 0.8s total loading)
+    }, 12); // Snappy interval
 
-    return () => clearInterval(interval);
-  }, [onComplete]);
+    // Fail-safe: if the loader screen remains for more than 1.5 seconds, automatically bypass it
+    const failSafeTimeout = setTimeout(() => {
+      clearInterval(interval);
+      try {
+        sessionStorage.setItem('csi_intro_shown', 'true');
+      } catch (e) {
+        console.error(e);
+      }
+      onCompleteRef.current();
+    }, 1500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(failSafeTimeout);
+    };
+  }, []);
 
   // Particle circuit grid visual in canvas
   useEffect(() => {

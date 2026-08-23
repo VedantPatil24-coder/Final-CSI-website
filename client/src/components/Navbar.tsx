@@ -63,22 +63,22 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="fixed top-6 left-0 w-full z-50 px-4 md:px-8">
+    <header className="fixed top-0 left-0 w-full z-50">
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
-        className={`max-w-7xl mx-auto flex items-center justify-between px-6 py-3 rounded-full border border-white/10 transition-all duration-300 ${
+        className={`w-full flex items-center justify-between px-6 md:px-12 py-2 border-b transition-all duration-300 ${
           scrolled 
-            ? 'bg-black/60 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border-cyan-500/20' 
-            : 'bg-black/20 backdrop-blur-sm'
+            ? 'bg-black/85 backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] border-cyan-500/20' 
+            : 'bg-black/40 backdrop-blur-sm border-white/5'
         }`}
       >
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 md:gap-3">
+        <Link href="/" className="flex items-center gap-2 md:gap-2.5">
           <div className="relative">
-            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-cyan-400/40 flex items-center justify-center bg-black/50 shadow-[0_0_15px_rgba(0,240,255,0.2)] hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all duration-300">
-              <img src="/csi_logo.png" alt="CSI Logo" className="w-[85%] h-[85%] object-contain" />
+            <div className="w-10 h-10 rounded-full overflow-hidden border border-cyan-400/40 flex items-center justify-center bg-black/50 shadow-[0_0_10px_rgba(0,240,255,0.2)] hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all duration-300">
+              <img src="/csi_logo.jpg" alt="CSI Logo" className="w-full h-full object-cover rounded-full" />
             </div>
           </div>
           <div className="flex flex-col">
@@ -112,7 +112,7 @@ export default function Navbar() {
                 {isActive && (
                   <motion.span
                     layoutId="activeIndicator"
-                    className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500"
+                    className="absolute -bottom-2 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500"
                   />
                 )}
               </a>
@@ -128,7 +128,7 @@ export default function Navbar() {
             className="md:hidden flex items-center justify-center p-2 text-white border border-white/10 hover:border-white/20 rounded-full transition-all bg-black/40 cursor-pointer"
             aria-label="Toggle Menu"
           >
-            {menuOpen ? <FiX className="w-4.5 h-4.5" /> : <FiMenu className="w-4.5 h-4.5" />}
+            {menuOpen ? <FiX className="w-4 h-4" /> : <FiMenu className="w-4.5 h-4.5" />}
           </button>
         </div>
       </motion.div>
@@ -137,11 +137,11 @@ export default function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="absolute top-20 left-4 right-4 glass-panel p-6 rounded-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] md:hidden flex flex-col gap-4 z-40"
+            className="absolute top-[57px] left-0 right-0 bg-black/95 backdrop-blur-lg p-6 border-b border-white/10 shadow-[0_15px_30px_rgba(0,0,0,0.8)] md:hidden flex flex-col gap-4 z-40"
           >
             {navItems.map((item) => {
               const isAnchor = item.path.startsWith('#');
