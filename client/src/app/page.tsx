@@ -219,9 +219,9 @@ const CALENDAR_EVENTS = [
   },
   {
     code: '05',
-    title: 'DATA INTERRUPT',
+    title: 'ZERO CODE',
     time: 'FEBRUARY',
-    description: 'Harness algorithms, data analytics, and computational models to solve tricky quantitative puzzles.',
+    description: 'An on-the-spot prompt engineering competition where students design functional web applications using AI tools in a standardized environment.',
     tags: []
   },
   {
