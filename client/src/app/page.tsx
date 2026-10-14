@@ -61,13 +61,13 @@ const FALLBACK_TEAM: TeamMember[] = [
   },
   {
     _id: 'team_001',
-    name: 'Dr. S. H. Patil',
+    name: 'Prof. Akanksha Mishra Tripathi',
     designation: 'Faculty Coordinator',
     category: 'coordinator',
     department: 'Computer Department',
     year: 'Staff',
     photoUrl: '/team/page_4_img_1.jpeg',
-    linkedinUrl: 'https://www.linkedin.com/in/dr-seema-patil-22b704325/'
+    linkedinUrl: 'https://www.linkedin.com/in/akansha-mishra-22783825/?isSelfProfile=false'
   },
   {
     _id: 'team_003',
